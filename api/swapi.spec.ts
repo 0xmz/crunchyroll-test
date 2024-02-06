@@ -1,39 +1,87 @@
 import { test, expect } from "@playwright/test";
 
 const planetDetails = require("../test-data/planets.json");
+const peopleDetails = require("../test-data/people.json");
+const starshipsDetails = require("../test-data/starships.json");
+const vehicleDetails = require("../test-data/vehicles.json");
+const filmsDetails = require("../test-data/films.json");
+const filmSearchDetails = require("../test-data/films-search.json");
+const peopleSearchDetails = require("../test-data/people-search1.json");
 
-test.describe("/planets endpoint valid response", () => {
-  test(`should return valid data for /planets}`, async ({ request }) => {
+test.describe("each endpoint returns valid data", () => {
+  test(`should return valid data for /planets`, async ({ request }) => {
     const response = await request.get(`https://swapi.dev/api/planets/1`, {
-      data: planetDetails,
+      data: {
+        planetDetails,
+      },
     });
-    const responseBody = await response.json();
-    console.log("Response body: ", responseBody);
     expect(response.status()).toBe(200);
-    for (const property of Object.keys(planetDetails)) {
-      expect(responseBody).toHaveProperty(property, planetDetails[property]);
-    }
+    expect(await response.json()).toMatchObject(planetDetails);
   });
 });
 
-// test.describe("/planets endpoint valid response", () => {
-//   test(`should return valid data for /planets}`, async ({ request }) => {
-//     const response = await request.get(`https://swapi.dev/api/planets/1`, {
-//       data: planetDetails,
-//     });
-//     const responseBody = await response.json();
-//     console.log("Response body: ", responseBody);
-//     expect(response.status()).toBe(200);
-//     for (const property of Object.keys(planetDetails)) {
-//       expect(responseBody).toHaveProperty(property, planetDetails[property]);
-//     }
-//   });
-// });
+test(`should return valid data for /people`, async ({ request }) => {
+  const response = await request.get(`https://swapi.dev/api/people/1`, {
+    data: {
+      peopleDetails,
+    },
+  });
+  expect(response.status()).toBe(200);
+  expect(await response.json()).toMatchObject(peopleDetails);
+});
 
-test.describe("SWAPI endpoint search", () => {});
+test(`should return valid data for /starships`, async ({ request }) => {
+  const response = await request.get(`https://swapi.dev/api/starships/9`, {
+    data: starshipsDetails,
+  });
+  expect(response.status()).toBe(200);
+  expect(await response.json()).toMatchObject(starshipsDetails);
+});
 
-test.describe("SWAPI Invalid Response Codes", () => {
-  const ENDPOINTS = [
+test(`should return valid data for /vehicles`, async ({ request }) => {
+  const response = await request.get(`https://swapi.dev/api/vehicles/4`, {
+    data: vehicleDetails,
+  });
+  expect(response.status()).toBe(200);
+  expect(await response.json()).toMatchObject(vehicleDetails);
+});
+
+test(`should return valid data for /films`, async ({ request }) => {
+  const response = await request.get(`https://swapi.dev/api/films/1`, {
+    data: filmsDetails,
+  });
+  expect(response.status()).toBe(200);
+  expect(await response.json()).toMatchObject(filmsDetails);
+});
+
+test.describe("valid search parameters", () => {
+  test(`should return valid data for /people/?search`, async ({ request }) => {
+    const peopleQuery = "C-3PO";
+    const response = await request.get(
+      `https://swapi.dev/api/people/?search=${peopleQuery}`,
+      {
+        data: peopleSearchDetails,
+      }
+    );
+    expect(response.status()).toBe(200);
+    expect(await response.json()).toMatchObject(peopleSearchDetails);
+  });
+
+  test(`should return valid data for /films/?search`, async ({ request }) => {
+    const filmQuery = "A";
+    const response = await request.get(
+      `https://swapi.dev/api/films/?search=${filmQuery}`,
+      {
+        data: filmSearchDetails,
+      }
+    );
+    expect(response.status()).toBe(200);
+    expect(await response.json()).toMatchObject(filmSearchDetails);
+  });
+});
+
+test.describe("invalid parameter returns 404", () => {
+  const endpoints = [
     "planets",
     "people",
     "starships",
@@ -41,13 +89,11 @@ test.describe("SWAPI Invalid Response Codes", () => {
     "films",
     "species",
   ];
-
-  for (const endpoint of ENDPOINTS) {
-    test(`should return 404 for each ${endpoint}`, async ({ request }) => {
+  for (const e of endpoints) {
+    test(`should return 404 for each ${e}`, async ({ request }) => {
       const response = await request.get(
-        `https://swapi.dev/api/${endpoint}/INVALID_PARAMETER`
+        `https://swapi.dev/api/${e}/INVALID_PARAMETER`
       );
-      const responseBody = await response.json();
       expect(response.status()).toBe(404);
     });
   }
